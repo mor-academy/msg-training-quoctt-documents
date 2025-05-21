@@ -116,6 +116,9 @@ for (var i = 0; i < arrayLenght; i++) {
 ```
 
 ### Vòng lặp for/in
+
+ trị sẽ không thể gán lại được khi dùng const, nên trong vòng lặp for/in biến key sẽ bị gán lại mỗi lần lặp với (key mới) nên sẽ gây lỗi.
+
 ```javascript
 var myInfo = {
     name: 'Tran Tien Quoc',
@@ -126,6 +129,12 @@ var myInfo = {
 for (var key in myInfo) {
     console.log(myInfo[key]);
 }
+
+
+//let có giới hạn phạm vi ( block scope ) nên biến key ở đây sẽ chỉ được dùng ở trong vòng lặp, khi ra khỏi dấu {} sẽ không thể dùng được nữa.
+//var có giới hạn phạm vi function ( function scope ) nên biến key vẫn có thể sử dụng được ở bên ngoài vòng lặp nên nó có thể gây lỗi.
+//const giá trị sẽ không thể gán lại được khi dùng const, nên trong vòng lặp for/in biến key sẽ bị gán lại mỗi lần lặp với (key mới) nên sẽ gây lỗi. Tuy nhiên trong for...in JS vẫn cho phép const vì mỗi lần lặp là một binding mới.
+
 ```
 ### Vòng lặp for/of
 ```javascript
@@ -158,4 +167,82 @@ const Rectangle = class {
         this.width = width;
     }
 };
+```
+
+## Sync /Async
+```javascript
+//setTimeout, set Interval, fetch, 
+//XMLHttpRequest, file reading, request animation frame
+```
+
+### Call Back
+```javascript
+// 1. Là hàm
+// 2. Truyền qua đối số
+// 3. Được gọi lại(trong hàm nhận đối số) 
+
+
+// Demo call back
+function oderPizza(callback) {
+    console.log('Đã dặt pizza chờ 3s giao');
+
+    setTimeout(function () {
+        console.log('Pizza đã được giao');
+        callback(); // Gọi hàm callback sau khi pizza được giao
+    }, 3000);
+}
+function eatPizza() {
+    console.log('Ăn pizza');
+}
+
+oderPizza(eatPizza);
+```
+
+### async/await
+```javascript
+//1. async biến một hàm thành hàm bất đồng bộ, và tự động trả về Promise.
+//2. await dùng để chờ một Promise hoàn thành mà không cần dùng .then().
+//3. Giúp viết code bất đồng bộ giống như code tuần tự, dễ đọc, dễ debug.
+
+function deliveryPizza(){
+    return new Promise(function(resolve){
+        setTimeout(function(){
+            resolve('Pizza đã giao');
+        },3000);
+    });
+}
+    //Dùng async/await
+    async function orderAEPizza() {
+        console.log('Đã đặt pizza, chờ 3s giao');
+        const result = await deliveryPizza(); //đợi pizza được giao
+        console.log(result);
+        console.log('Ăn pizza');
+    }
+    orderAEPizza();
+
+sử dụng try/catch để xử lý lỗi
+
+function deliveryPizza() {
+    return new Promise(function (resolve, reject) {
+        setTimeout(function () {
+            var isSuccess = true;
+            if (isSuccess) {
+                resolve('Giao Pizza thành công');
+            } else {
+                reject('Giao pizza thất bại');
+            }
+        }, 3000);
+    });
+}
+    async function orderAEPizza() {
+        try {
+            console.log('Đặt Pizza ');
+            var result = await deliveryPizza();
+            console.log(result);
+            console.log('Ăn pizza')
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    orderAEPizza();
 ```
