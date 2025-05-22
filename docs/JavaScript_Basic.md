@@ -4,7 +4,7 @@
 
 ### Number type
 
-```javascript
+```jsx live showlinenumber
 var a = 1;
 var b = 2;
 var c = 1.5;
@@ -12,7 +12,7 @@ var c = 1.5;
 
 ### String type
 
-```javascript
+```js
 var fullName = "Tran Tien Quoc";
 ```
 
