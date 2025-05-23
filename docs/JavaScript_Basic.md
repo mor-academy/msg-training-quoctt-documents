@@ -1,25 +1,10 @@
 # Javascript basic
 
-
-```mermaid
-architecture-beta
-    group api(cloud)[API]
-
-    service db(database)[Database] in api
-    service disk1(disk)[Storage] in api
-    service disk2(disk)[Storage] in api
-    service server(server)[Server] in api
-
-    db:L -- R:server
-    disk1:T -- B:server
-    disk2:T -- B:db
-```
-
 ## Các kiểu dữ liệu
 
 ### Number type
 
-```jsx live showlinenumber
+```js
 var a = 1;
 var b = 2;
 var c = 1.5;
@@ -33,25 +18,25 @@ var fullName = "Tran Tien Quoc";
 
 ### Boolean type
 
-```javascript
+```js
 var isSuccess = true;
 ```
 
 ### Undifined type
 
-```javascript
+```js
 var age;
 ```
 
 ### Null
 
-```javascript
+```js
 var isNull = null; //rổng
 ```
 
 ### Object Type
 
-```javascript
+```js
 var myObj = {
   name: "Son Tung MTP",
   age: 29,
@@ -64,41 +49,44 @@ var myArray = ["JavaScript", "Ruby", "Java"];
 
 ### Tạo chuỗi Template String
 
-```javascript
+```jsx live noInline
 var firstName = "Tran Tien";
 var lastName = "Quoc";
 
-console.log(`Tôi là: ${firstName} ${lastName}`);
+//console.log(`Tôi là: ${firstName} ${lastName}`);
+render(<p>{`Tôi là: ${firstName} ${lastName}`}</p>);
 ```
 
 ### Cách truyền tham số vào hàm
 
-```javascript
+```jsx live noInline
 function writeLog(message) {
-  console.log(message);
+  render(<p>{message}</p>);
 }
-writeLog(); //có thể truyền bất cứ thứ gì
+writeLog(20); //có thể truyền bất cứ thứ gì
 ```
 
 ## Các loại function
 
 ### Declaration function
 
-```javascript
+```jsx live noInline
 //có thể gọi trước khi được định nghĩa
 showMessage();
 function showMessage() {
-  console.log("Declaration function");
+  //console.log("Declaration function");
+  render(<p>{"Declaration function"}</p>);
 }
 ```
 
 ### Expresstion function
 
-```javascript
+```jsx live noInline
 //không thể gọi khi không được định nghĩa trước
 //showMessage2(); error
 var showMessage2 = function () {
-  console.log("Expression function");
+  //console.log("Expression function");
+  render(<p>{"Expression function"}</p>);
 };
 
 showMessage2();
@@ -106,7 +94,7 @@ showMessage2();
 
 ## Object trong javascript
 
-```javascript
+```jsx live noInline
 var emailKey = "email";
 
 var myInfo = {
@@ -120,15 +108,17 @@ var myInfo = {
 }; //delete myInfo.age;
 
 var myKey = "address";
-console.log(myInfo[myKey]);
-console.log(myInfo); //console.log(myInfo.getName());
+//console.log(myInfo[myKey]);
+//console.log(myInfo);
+//console.log(myInfo.getName());
+render(<p>{`Name: ${myInfo.name}, Address: ${myInfo[myKey]}`}</p>);
 ```
 
 ## Vòng lặp
 
 ### Vòng lặp for
 
-```javascript
+```jsx
 for (var i = 1; i <= 10; i++) {
   console.log(i);
 }
@@ -136,7 +126,7 @@ for (var i = 1; i <= 10; i++) {
 
 ### Vòng lặp for mảng
 
-```javascript
+```js
 var myArray = ["Javascript", "PHP", "Java", "Python"];
 
 var arrayLenght = myArray.length;
@@ -150,7 +140,7 @@ for (var i = 0; i < arrayLenght; i++) {
 
 trị sẽ không thể gán lại được khi dùng const, nên trong vòng lặp for/in biến key sẽ bị gán lại mỗi lần lặp với (key mới) nên sẽ gây lỗi.
 
-```javascript
+```js
 var myInfo = {
   name: "Tran Tien Quoc",
   age: 19,
@@ -168,7 +158,7 @@ for (var key in myInfo) {
 
 ### Vòng lặp for/of
 
-```javascript
+```js
 function writesmallLog() {
   var myString = "";
   for (var param of arguments) {
@@ -184,7 +174,7 @@ writesmallLog("Log 1", "Log 2");
 
 ### Class Declaration
 
-```javascript
+```js
 class Rectangle {
   constructor(height, width) {
     this.height = height;
@@ -195,7 +185,7 @@ class Rectangle {
 
 ### Class Expression
 
-```javascript
+```js
 const Rectangle = class {
   constructor(height, width) {
     this.height = height;
@@ -206,14 +196,14 @@ const Rectangle = class {
 
 ## Sync /Async
 
-```javascript
+```js
 //setTimeout, set Interval, fetch,
 //XMLHttpRequest, file reading, request animation frame
 ```
 
 ### Call Back
 
-```javascript
+```js
 // 1. Là hàm
 // 2. Truyền qua đối số
 // 3. Được gọi lại(trong hàm nhận đối số)
@@ -236,7 +226,7 @@ oderPizza(eatPizza);
 
 ### async/await
 
-```javascript
+```js
 //1. async biến một hàm thành hàm bất đồng bộ, và tự động trả về Promise.
 //2. await dùng để chờ một Promise hoàn thành mà không cần dùng .then().
 //3. Giúp viết code bất đồng bộ giống như code tuần tự, dễ đọc, dễ debug.
@@ -286,7 +276,7 @@ function deliveryPizza() {
 
 ### Promise
 
-```javascript
+```js
 /**
  * Promise là một đối tượng đại diện cho một giá trị có có bây giờ, trong tương lai, hoặc không bao giờ,
  * Promise xử lý bất đồng bộ gọn hơn CallBack
