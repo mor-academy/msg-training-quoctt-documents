@@ -22,7 +22,7 @@ let undi: undefined = undefined;
 let obj: object = { a: 1 };
 ```
 
-<details >
+<details>
   <summary>Một số lưu ý</summary>
 #### Các cách clone object trong JavaScript
 
