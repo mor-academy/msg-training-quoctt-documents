@@ -129,3 +129,27 @@ async function oderPizaa2(): Promise<void> {
   }
 }
 ```
+
+```ts
+//union: một biến có thể có nhiều kiểu dữ liệu
+let uni: number | string = 102;
+```
+
+```ts
+//intersection: kết hợp lại nhiều kiểu
+type nhanVien = { name: string };
+type quanLy = { department: string };
+type Sep = nhanVien & quanLy;
+```
+
+```ts
+//literal: giá trị cụ thể
+let direction: "left" | "right" = "left";
+```
+
+```ts
+//void: không trả về gì(thường dùng cho hàm)
+function messLog(): void {
+  console.log("log message");
+}
+```
