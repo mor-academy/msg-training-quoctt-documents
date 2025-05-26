@@ -18,32 +18,61 @@ let undi: undefined = undefined;
 
 ### Kiểu dữ liệu tham chiếu
 
-```
-Theo a thì có thể dùng:
-  + spread operator vd: let clone: {...obj};
-  + Object assign vd: let clone: Object.assign({}, obj); và còn một số cách khác nữa...
-Thường sẽ có 2 kiểu để clone là
-  + clone nông và clone sâu,
-Nên dùng cái nào cho các trường hợp:
-  + Object đơn giản, không lồng nhau      ...obj hoặc Object.assign()
-  + Object có nested                      structuredClone
-  + Object có Date, Map, Set               hoặc lodash.cloneDeep
-  + Object có circular reference          lodash.cloneDeep
-  + Muốn hiệu năng cao                    Thì không nên dùng deep clone nếu không cần thiết
-Các lỗi thường gặp
-  + Clone không sâu khi cần
-    =>  Gây ra lỗi logic khi thay đổi nested object trong clone làm ảnh hưởng original.
-  + Dùng JSON.stringify không đúng với object có function / Date / circular
-    => Mất dữ liệu hoặc gây lỗi.
-  + Clone mất prototype
-    => Một số cách clone (JSON, lodash) sẽ mất proto, ảnh hưởng behavior.
-  + Gặp lỗi với circular reference
-    => JSON.stringify sẽ throw lỗi.
-```
-
 ```ts
 let obj: object = { a: 1 };
 ```
+
+<details>
+  <summary>Một số lưu ý</summary>
+#### Các cách clone object trong JavaScript
+
+Có nhiều cách để clone một object trong JavaScript, phổ biến nhất gồm:
+
+- **Spread Operator**
+
+  ```js
+  let clone = { ...obj };
+  ```
+
+- **Object.assign**
+
+  ```js
+  let clone = Object.assign({}, obj);
+  ```
+
+- **Các phương pháp khác**
+  Bao gồm `structuredClone(obj)`, `JSON.parse(JSON.stringify(obj))`, hoặc dùng thư viện như `lodash.cloneDeep(obj)`.
+
+---
+
+#### Nên dùng phương pháp nào?
+
+| Trường hợp                              | Nên dùng                                          |
+| --------------------------------------- | ------------------------------------------------- |
+| Object đơn giản, không lồng nhau        | Spread operator (`...obj`) hoặc `Object.assign()` |
+| Object có cấu trúc lồng nhau (nested)   | `structuredClone(obj)`                            |
+| Object chứa `Date`, `Map`, `Set`        | `lodash.cloneDeep(obj)`                           |
+| Object có vòng lặp (circular reference) | `lodash.cloneDeep(obj)`                           |
+| Yêu cầu hiệu năng cao                   | Tránh sử dụng deep clone nếu không cần thiết      |
+
+> **Ghi nhớ**: Deep clone thường tốn tài nguyên và không cần thiết với các object đơn giản.
+
+---
+
+#### Những lỗi phổ biến khi clone object
+
+- **Clone nông khi cần clone sâu**
+  Dễ dẫn đến lỗi logic khi thay đổi object con trong bản clone làm ảnh hưởng đến bản gốc.
+
+- **Dùng `JSON.stringify` với object phức tạp**
+  Không thể clone function, `Date`, hoặc object có vòng lặp — dẫn đến mất dữ liệu hoặc throw lỗi.
+
+- **Làm mất prototype**
+  Một số phương pháp như `JSON.stringify` hoặc `lodash.cloneDeep` không giữ nguyên prototype, có thể làm sai hành vi object.
+
+- **Circular reference gây lỗi**
+Khi dùng `JSON.stringify`, nếu object có vòng lặp sẽ ném lỗi (`TypeError: Converting circular structure to JSON`).
+</details>
 
 ```ts
 let arr: number[] = [1, 2];
