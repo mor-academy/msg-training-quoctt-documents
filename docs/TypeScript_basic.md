@@ -20,7 +20,35 @@ let undi: undefined = undefined;
 
 ```ts
 let obj: object = { a: 1 };
+```
 
+```
+Theo a thì có thể dùng:
++spread operator vd: let clone: {...obj};
++Object assign vd: let clone: Object.assign({}, obj); và còn một số cách khác nữa.
+Thường sẽ có 2 kiểu là clone nông và clone sâu,
+Nên dùng cái nào cho các trường hợp:
+Object đơn giản, không lồng nhau ------ ...obj hoặc Object.assign()
+Object có nested-------structuredClone
+Object có Date, Map, Set----------structuredClone hoặc lodash.cloneDeep
+Object có circular reference---------lodash.cloneDeep
+Muốn hiệu năng cao--------Thì không nên dùng deep clone nếu không cần thiết
+Các lỗi thường gặp
+Clone không sâu khi cần
+Gây ra lỗi logic khi thay đổi nested object trong clone làm ảnh hưởng original.
+Dùng JSON.stringify không đúng với object có function / Date / circular
+Mất dữ liệu hoặc gây lỗi.
+Clone mất prototype
+Một số cách clone (JSON, lodash) sẽ mất proto, ảnh hưởng behavior.
+Gặp lỗi với circular reference
+JSON.stringify sẽ throw lỗi.
+```
+
+```ts
+let obj: object = { a: 1 };
+```
+
+```ts
 let arr: number[] = [1, 2];
 
 let tup: [string, number] = ["a", 1];
