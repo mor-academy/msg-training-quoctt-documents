@@ -172,7 +172,17 @@ type Person = { name: string };
 type Employee = { id: number };
 type Staff = Person & Employee;
 ```
+<details>
+    <summary>Một số lưu ý cách đặt tên</summary>
 
+**1. camelCase:**
+> - Viết thường chữ cái đầu của biến và các từ tiếp đó viết hoa chữ cái đầu
+> - Thường dùng cho tên biến, tên hàm.
+
+**2. PascalCase:**
+> - Mỗi từ đều viết hoa chữ cái đầu
+> - Thường dùng cho tên class, kiểu (type), interface, enum
+</details>
 ### Literal Types - Giá trị cụ thể
 
 ```ts
