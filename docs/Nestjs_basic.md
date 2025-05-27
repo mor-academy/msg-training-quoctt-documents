@@ -13,12 +13,25 @@ flowchart TD
 > - Mỗi ứng dụng NestJS luôn có ít nhất một module, đó là `AppModule`
 
 ## Định nghĩa một Module
-> Module được định nghĩa bằng cách sử dụng decorator `@Module()` từ NestJS. Một module là một class có decorator này: 
+> Module được định nghĩa bằng cách sử dụng decorator `@Module()` từ NestJS. Một module là một class có decorator này:
 #### Các thuộc tính chính của `@Module()`:
 > - `imports`: nhập các module khác mà module này phụ thuộc.
 > - `controllers`: chứa các controller xử lý các yêu cầu HTTP.
 > - `providers`: các service, factory, hoặc class được sử dụng trong module.
 > - `exports`: những provider được chia sẻ để sử dụng ở module khác.
+
+> Dấu `@` trong NestJS là một **Decorators** là một tính năng giúp chú thích và cấu hình các thành phần trong ứng dụng một cách rõ ràng và dễ đọc
+:::tip Một số Decorators phổ biến trong NestJS
+| Decorator                                             | Mục đích                                                                                 |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `@Module()`                                           | Đánh dấu một class là module – chứa các controller, provider, import/export module khác. |
+| `@Controller()`                                       | Đánh dấu một class là controller – xử lý các request từ client.                          |
+| `@Get()`, `@Post()`, `@Put()`, `@Delete()`            | Mapping các method HTTP đến các hàm xử lý tương ứng trong controller.                    |
+| `@Injectable()`                                       | Đánh dấu class là provider có thể được inject (thường là service).                       |
+| `@Inject()`                                           | Dùng để inject thủ công một provider nào đó.                                             |
+| `@Body()`, `@Param()`, `@Query()`, `@Req()`, `@Res()` | Decorators để truy xuất dữ liệu từ request (thân request, params, query, v.v).           |
+:::
+
 ## Tổ chức Module
 > - NestJS khuyến khích kiến trúc modular, mỗi module đảm nhận một chức năng nhất định, ví dụ: `UsersModule`, `AuthModule`, `ProductsModule`,...
 ## Import các Module khác
