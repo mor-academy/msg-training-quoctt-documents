@@ -77,7 +77,7 @@ Khi dùng `JSON.stringify`, nếu object có vòng lặp sẽ ném lỗi (`TypeE
 ```ts
 let arr: number[] = [1, 2];
 
-let tup: [string, number] = ["a", 1];
+let tup: [string, number] = ["a", 1]; //mảng có độ dài cố định
 
 const sum = function (x: number, y: number) {
   return x + y;
@@ -155,3 +155,93 @@ async function oderPizaa2(): Promise<void> {
   }
 }
 ```
+
+## Kiểu dữ liệu nâng cao
+
+### Union Types - kết hợp nhiều kiểu
+
+```ts
+let id: string | number = "9233";
+id = 123;
+```
+
+### Intersection Types - giao của các kiểu
+
+```ts
+type Person = { name: string };
+type Employee = { id: number };
+type Staff = Person & Employee;
+```
+<details>
+    <summary>Một số lưu ý cách đặt tên</summary>
+
+**1. camelCase:**
+> - Viết thường chữ cái đầu của biến và các từ tiếp đó viết hoa chữ cái đầu
+> - Thường dùng cho tên biến, tên hàm.
+
+**2. PascalCase:**
+> - Mỗi từ đều viết hoa chữ cái đầu
+> - Thường dùng cho tên class, kiểu (type), interface, enum
+</details>
+### Literal Types - Giá trị cụ thể
+
+```ts
+let direction: "up" | "down" | "left" | "right" = "up";
+```
+
+### Enum - Tập hợp các hằng số có tên
+
+```ts
+enum Color {
+  Red,
+  Green,
+  Blue,
+}
+
+let favoriteColor: Color = Color.Blue;
+```
+
+### Type Aliases - Đặt tên cho kiểu dữ liệu
+
+```ts
+type ID = string | number;
+type UserCallback = (user: User) => void;
+```
+
+### Generic Types - Kiểu tham số hoá
+
+```ts
+function identity<T>(arg: T): T {
+  return arg;
+}
+let result = identity<string>("Hello");
+```
+
+## Function trong TypeScript
+
+### Function Declaration
+
+```ts
+function add(a: number, b: number): number {
+  return a + b;
+}
+```
+
+### Function Expression
+
+```ts
+const add = function (a: number, b: number): number {
+  return a + b;
+};
+```
+
+### Optional Parameters - Tham số tuỳ chọn
+
+```ts
+function greet(name: string, greeting?: string): string {
+  return `${greeting || "Hello"} ${name}`;
+}
+greet("john"); // "Hello John"
+greet("John", "Hi"); // "Hi John"
+```
+
