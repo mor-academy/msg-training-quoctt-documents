@@ -4,26 +4,26 @@ config:
   theme: neutral
 ---
 erDiagram
-    User ||--o{ Customer : "has"
-    User ||--o{ Role : "has"
-    User ||--o{ KPI : "owns"
+    Role ||--o{ User : "assigned to"
+    User ||--o{ Customer : "manages"
+    User ||--o{ TaskAssignment : "assigned"
     User ||--o{ ActivityLog : "performs"
     User ||--o{ ImportExportLog : "triggers"
-    Customer ||--o{ Task : "has"
-    Task ||--o{ TaskAssignment : "has"
-    User ||--o{ TaskAssignment : "assigned"
-    Notification ||--o{ NotificationRecipient : "has"
+    User ||--o{ Notification : "creates"
     User ||--o{ NotificationRecipient : "receives"
-    User ||--o{ Notification : "created by"
+    Customer ||--o{ Task : "has"
+    Customer ||--o{ CustomerTask : participates
+    CustomerSegment ||--o{ Customer : "segment of"
+    Market ||--o{ Customer : "market of"
+    Task ||--o{ TaskAssignment : "has"
+    Task ||--o{ CustomerTask : includes
+    Notification ||--o{ NotificationRecipient : "has"
     Company ||--o{ Department : "has"
     Company ||--o{ User : "employs"
     Company ||--o{ Customer : "serves"
     Department ||--o{ User : "has"
-    Customer ||--o{ CustomerTask : participates
-    Task ||--o{ CustomerTask : includes
     Role ||--o{ RolePermission : "has"
-    Permission ||--o{ RolePermission : "has"
-
+    Permission ||--o{ RolePermission : "grants"
     User {
         int id PK
         string name
@@ -44,8 +44,21 @@ erDiagram
         string company
         string note
         int user_id FK
+        int segment_id FK
+        int market_id FK
         datetime created_at
         datetime updated_at
+    }
+    CustomerSegment {
+        int id PK
+        string name
+        string description
+    }
+    Market {
+        int id PK
+        string name
+        string region
+        string description
     }
     CustomerTask {
         int id PK
@@ -74,30 +87,26 @@ erDiagram
         datetime assigned_at
         string status
     }
-
     Role {
         int id PK
         string name
         string description
         boolean is_active
     }
-
     Permission {
         int id PK  
         string name
         string resource
         string action
     }
-
     RolePermission {
         int role_id FK
         int permission_id FK
     }
-
     Notification {
         int id PK
         string title
-        text message
+        string message
         string type
         datetime sent_at
         int created_by_id FK
@@ -111,14 +120,6 @@ erDiagram
         boolean is_read
         datetime read_at
         boolean delivery_status
-    }
-    KPI {
-        int id PK
-        int user_id FK
-        int tasks_completed
-        int new_customers
-        int total_contacts
-        string month_year
     }
     ActivityLog {
         int id PK
@@ -154,5 +155,4 @@ erDiagram
         datetime created_at
         datetime updated_at
     }
-
 ```
