@@ -106,3 +106,116 @@ export class SomeService implements OnModuleInit {
 ```
 ## Tổ chức cấu trúc dự án lớn
 - NestJS khuyến nghị chia theo **feature module** thay vì chia theo layer (controller/service/model), giúp dễ mở rộng, bảo trì.
+
+## Routing 
+- Trong NestJS, một route được định nghĩa thông qua **decorator** như `@Get`, `@Post`,...
+```tsx showLineNumbers
+    // users.controller.ts
+import { Controller, Get, Post } from '@nestjs/common';
+
+@Controller('users')
+export class UsersController {
+  @Get()
+  getAllUsers() {
+    return 'Danh sách tất cả người dùng';
+  }
+
+  @Post()
+  createUser() {
+    return 'Tạo người dùng mới';
+  }
+}
+```
+##  Dependency Injection
+-  NestJS sử dụng DI để quản lý Service.tạo một service và inject nó vào controller.
+```tsx showLineNumbers
+// users.service.ts
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class UsersService {
+  getUsers() {
+    return ['User1', 'User2'];
+  }
+}
+```
+```tsx showLineNumbers
+// users.controller.ts
+import { Controller, Get } from '@nestjs/common';
+import { UsersService } from './users.service';
+
+@Controller('users')
+export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
+
+  @Get()
+  getAllUsers() {
+    return this.usersService.getUsers();
+  }
+}
+```
+## DTO + Validation
+- DTO (Data Transfer Object) giúp định nghĩa cấu trúc dữ liệu truyền vào, kèm validation sử dụng `class-validator`
+
+```tsx showLineNumbers
+// create-user.dto.ts
+import { IsString, IsEmail, Length } from 'class-validator';
+
+export class CreateUserDto {
+  @IsString()
+  @Length(3, 20)
+  username: string;
+
+  @IsEmail()
+  email: string;
+}
+```
+## DTO và Validation trong Route
+```tsx
+// users.controller.ts
+import { Controller, Post, Body } from '@nestjs/common';
+import { CreateUserDto } from './dto/create-user.dto';
+
+@Controller('users')
+export class UsersController {
+  @Post()
+  createUser(@Body() createUserDto: CreateUserDto) {
+    return {
+      message: 'Tạo thành công',
+      data: createUserDto,
+    };
+  }
+}
+```
+- Để validation hoạt động, cần enable `ValidationPipe` trong `main.ts`
+
+```tsx
+// main.ts
+import { ValidationPipe } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.useGlobalPipes(new ValidationPipe());
+  await app.listen(3000);
+}
+bootstrap();
+```
+## Routing nâng cao
+- Có thể sử dụng các route `@Param` , `@Query` , nested route
+#### Route với param:
+```tsx
+@Get(':id')
+getUser(@Param('id') id: string) {
+  return `Thông tin người dùng có id: ${id}`;
+}
+```
+#### Route với query:
+```tsx
+@Get()
+getUsers(@Query('page') page: number) {
+  return `Trang ${page}`;
+}
+```
+
