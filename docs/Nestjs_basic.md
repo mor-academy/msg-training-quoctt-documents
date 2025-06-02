@@ -187,7 +187,43 @@ export class UsersController {
   }
 }
 ```
+> DTO dùng để định nghĩa cấu trúc dữ liệu:
+
+- Nhận vào (từ client, ví dụ qua @Body() trong POST)
+- (Tuỳ chọn) Trả ra từ API
+> Nó giống như một "bộ lọc dữ liệu chuẩn" giữa client và server, đảm bảo:
+- Đúng kiểu dữ liệu
+- Không có dữ liệu thừa
+- Có thể kiểm tra (validate) tự động
+> Nếu không có file DTO NestJS vẫn sẽ chạy được nhưng sẽ có nhiều rủi ro
+:::danger Không dùng DTO – Hậu quả
+| **Vấn đề**                  | **Hậu quả**                                                         |
+| --------------------------- | ------------------------------------------------------------------- |
+| Không có kiểu rõ ràng       | Dễ sai dữ liệu (ví dụ: `name: 123`, `email: null`)                  |
+| Không kiểm tra input        | Hacker dễ gửi thêm các field không mong muốn (Injection, XSS, v.v.) |
+| Không gọn gàng, khó bảo trì | Logic validation trộn lẫn, dễ lỗi, code lặp lại                     |
+:::
 - Để validation hoạt động, cần enable `ValidationPipe` trong `main.ts`
+
+:::tip
+| Tính năng                       | Mô tả                                               |
+| ------------------------------- | --------------------------------------------------- |
+| Tự động validate dữ liệu        | Dựa vào class-validator decorators trong DTO        |
+| Tự động trả lỗi HTTP 400        | Nếu dữ liệu không hợp lệ (`BadRequestException`)    |
+| Tự động chuyển đổi kiểu dữ liệu | Ví dụ: `"123"` → `123` nếu dùng `transform: true`   |
+| Bảo vệ controller               | Đảm bảo không có dữ liệu rác vào controller/service |
+:::
+
+- Không muốn tự chuyển đổi "123" => 123 thì
+
+:::info Transform trong ValidationPipe
+| **Mục tiêu**                 | **Cách làm**                                               |
+| ---------------------------- | ---------------------------------------------------------- |
+| Toàn bộ project tự transform | `ValidationPipe({ transform: true })` toàn cục             |
+| Tắt transform ở 1 route      | `@UsePipes(new ValidationPipe({ transform: false }))`      |
+| Chỉ transform vài field      | Dùng `@Type(() => Type)` trong DTO với `class-transformer` |
+| Tự kiểm soát toàn bộ         | Tắt `transform` toàn cục và xử lý thủ công                 |
+:::
 
 ```tsx
 // main.ts
@@ -218,4 +254,5 @@ getUsers(@Query('page') page: number) {
   return `Trang ${page}`;
 }
 ```
+
 
