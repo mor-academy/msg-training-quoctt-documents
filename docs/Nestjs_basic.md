@@ -257,13 +257,13 @@ getUsers(@Query('page') page: number) {
 ### Swagger info
 
 > Nếu có:
-
 - 0.0.0.0 có nghĩa là lắng nghe trên tất cả các địa chỉ IP khả dụng của máy chủ bao gồm: localhost, mạng Lan,..
 - tức là mọi thiết bị có thể kết nối được đến server này, miễn sao đúng cổng và IP.
+  
 > Nếu Không có:
-
 - Chỉ các ứng dụng/chương trình trên cùng máy mới kết nối được.
 - Các thiết bị bên ngoài, như trình duyệt trên điện thoại hay máy khác, sẽ không kết nối được, ngay cả khi biết địa chỉ IP.
+
 > Tóm lại:
 - Dùng '0.0.0.0' khi cần truy cập từ bên ngoài, như test trên điện thoại, deploy trên server thật, hoặc chia sẻ với đồng nghiệp trong cùng mạng.
 - Không dùng '0.0.0.0' khi phát triển cục bộ để tăng tính bảo mật.
