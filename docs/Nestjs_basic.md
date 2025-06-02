@@ -187,6 +187,33 @@ export class UsersController {
   }
 }
 ```
+#### Dùng UUID (chuỗi ký tự) làm ID
+> Phổ biến khi dùng với CSDL như PostgreSQL, MongoDB, Prisma, TypeORM,…
+```ts
+GET /users/df2f0b6e-41a1-4876-bf4e-fd4ae9e23e11
+```
+> Đây là ID dạng chuỗi, không phải số → không thể dùng `ParseIntPipe`.
+
+#### Dùng MongoDB → `id` thường là `_id` dạng ObjectId
+> Dạng chuỗi 24 ký tự hexa:
+```ts
+GET /users/64db53d6f304fcf3bcd3e61e
+```
+> Vẫn là string → bạn phải dùng `id: string`, KHÔNG ép `ParseIntPipe`
+
+:::tip
+## Khi nào nên dùng ID dạng chuỗi (UUID, ObjectId)
+
+Trong các hệ thống hiện đại, việc dùng `string` làm `ID` thay cho `number` là rất phổ biến, đặc biệt với UUID hoặc MongoDB ObjectId.
+
+| Trường hợp                      | Nên dùng                       |
+| ------------------------------- | ------------------------------ |
+| Dùng MongoDB                    | ObjectId là chuỗi              |
+| Dùng PostgreSQL với UUID        | ID là chuỗi                    |
+| Hệ thống phân tán, tăng bảo mật | UUID tránh lộ số lượng bản ghi |
+| Muốn client tự sinh ID          | ID dạng string dễ generate     |
+:::
+
 > DTO dùng để định nghĩa cấu trúc dữ liệu:
 
 - Nhận vào (từ client, ví dụ qua @Body() trong POST)
