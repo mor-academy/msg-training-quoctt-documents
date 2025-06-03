@@ -187,7 +187,70 @@ export class UsersController {
   }
 }
 ```
+#### Dùng UUID (chuỗi ký tự) làm ID
+> Phổ biến khi dùng với CSDL như PostgreSQL, MongoDB, Prisma, TypeORM,…
+```ts
+GET /users/df2f0b6e-41a1-4876-bf4e-fd4ae9e23e11
+```
+> Đây là ID dạng chuỗi, không phải số → không thể dùng `ParseIntPipe`.
+
+#### Dùng MongoDB → `id` thường là `_id` dạng ObjectId
+> Dạng chuỗi 24 ký tự hexa:
+```ts
+GET /users/64db53d6f304fcf3bcd3e61e
+```
+> Vẫn là string → bạn phải dùng `id: string`, KHÔNG ép `ParseIntPipe`
+
+:::tip
+## Khi nào nên dùng ID dạng chuỗi (UUID, ObjectId)
+
+Trong các hệ thống hiện đại, việc dùng `string` làm `ID` thay cho `number` là rất phổ biến, đặc biệt với UUID hoặc MongoDB ObjectId.
+
+| Trường hợp                      | Nên dùng                       |
+| ------------------------------- | ------------------------------ |
+| Dùng MongoDB                    | ObjectId là chuỗi              |
+| Dùng PostgreSQL với UUID        | ID là chuỗi                    |
+| Hệ thống phân tán, tăng bảo mật | UUID tránh lộ số lượng bản ghi |
+| Muốn client tự sinh ID          | ID dạng string dễ generate     |
+:::
+
+> DTO dùng để định nghĩa cấu trúc dữ liệu:
+
+- Nhận vào (từ client, ví dụ qua @Body() trong POST)
+- (Tuỳ chọn) Trả ra từ API
+> Nó giống như một "bộ lọc dữ liệu chuẩn" giữa client và server, đảm bảo:
+- Đúng kiểu dữ liệu
+- Không có dữ liệu thừa
+- Có thể kiểm tra (validate) tự động
+> Nếu không có file DTO NestJS vẫn sẽ chạy được nhưng sẽ có nhiều rủi ro
+:::danger Không dùng DTO – Hậu quả
+| **Vấn đề**                  | **Hậu quả**                                                         |
+| --------------------------- | ------------------------------------------------------------------- |
+| Không có kiểu rõ ràng       | Dễ sai dữ liệu (ví dụ: `name: 123`, `email: null`)                  |
+| Không kiểm tra input        | Hacker dễ gửi thêm các field không mong muốn (Injection, XSS, v.v.) |
+| Không gọn gàng, khó bảo trì | Logic validation trộn lẫn, dễ lỗi, code lặp lại                     |
+:::
 - Để validation hoạt động, cần enable `ValidationPipe` trong `main.ts`
+
+:::tip
+| Tính năng                       | Mô tả                                               |
+| ------------------------------- | --------------------------------------------------- |
+| Tự động validate dữ liệu        | Dựa vào class-validator decorators trong DTO        |
+| Tự động trả lỗi HTTP 400        | Nếu dữ liệu không hợp lệ (`BadRequestException`)    |
+| Tự động chuyển đổi kiểu dữ liệu | Ví dụ: `"123"` → `123` nếu dùng `transform: true`   |
+| Bảo vệ controller               | Đảm bảo không có dữ liệu rác vào controller/service |
+:::
+
+- Không muốn tự chuyển đổi "123" => 123 thì
+
+:::info Transform trong ValidationPipe
+| **Mục tiêu**                 | **Cách làm**                                               |
+| ---------------------------- | ---------------------------------------------------------- |
+| Toàn bộ project tự transform | `ValidationPipe({ transform: true })` toàn cục             |
+| Tắt transform ở 1 route      | `@UsePipes(new ValidationPipe({ transform: false }))`      |
+| Chỉ transform vài field      | Dùng `@Type(() => Type)` trong DTO với `class-transformer` |
+| Tự kiểm soát toàn bộ         | Tắt `transform` toàn cục và xử lý thủ công                 |
+:::
 
 ```tsx
 // main.ts
@@ -218,4 +281,100 @@ getUsers(@Query('page') page: number) {
   return `Trang ${page}`;
 }
 ```
+### Swagger info
 
+> Nếu có:
+- 0.0.0.0 có nghĩa là lắng nghe trên tất cả các địa chỉ IP khả dụng của máy chủ bao gồm: localhost, mạng Lan,..
+- tức là mọi thiết bị có thể kết nối được đến server này, miễn sao đúng cổng và IP.
+  
+> Nếu Không có:
+- Chỉ các ứng dụng/chương trình trên cùng máy mới kết nối được.
+- Các thiết bị bên ngoài, như trình duyệt trên điện thoại hay máy khác, sẽ không kết nối được, ngay cả khi biết địa chỉ IP.
+
+> Tóm lại:
+- Dùng '0.0.0.0' khi cần truy cập từ bên ngoài, như test trên điện thoại, deploy trên server thật, hoặc chia sẻ với đồng nghiệp trong cùng mạng.
+- Không dùng '0.0.0.0' khi phát triển cục bộ để tăng tính bảo mật.
+
+:::tip
+### Tip khi dùng 
+#### Partialtype
+> Khi bạn muốn tạo một DTO khác để update thông tin người dùng (PATCH), bạn không cần viết lại DTO từ đầu. Thay vào đó, bạn có thể dùng `PartialType`:
+```ts
+import { PartialType } from '@nestjs/swagger';
+
+export class UpdateUserDto extends PartialType(CreateUserDto) {}
+```
+**Kết quả**: `UpdateUserDto` sẽ có tất cả các thuộc tính từ `CreateUserDto`, nhưng tất cả đều là `Optional`.
+
+#### Omittype
+- Ý nghĩa: Tạo một class mới từ class gốc, nhưng loại bỏ một hoặc nhiều trường.
+- Thường dùng khi bạn muốn tái sử dụng một DTO nhưng bỏ bớt một vài trường không cần thiết.
+```ts
+import { OmitType } from '@nestjs/swagger';
+import { IsString, IsEmail } from 'class-validator';
+
+class UserDto {
+  @IsString()
+  name: string;
+
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  password: string;
+}
+
+// Tạo DTO mới không có trường 'password'
+class UserWithoutPasswordDto extends OmitType(UserDto, ['password'] as const) {}
+```
+> `UserWithoutPasswordDto` có 2 trường: `name` và `email`, không có trường `password`.
+#### PickType
+- Ý nghĩa: Tạo một class mới từ class gốc, nhưng chỉ lấy một số trường được chọn.
+- Thường dùng khi bạn chỉ muốn expose một số trường nhất định.
+```ts
+import { PickType } from '@nestjs/swagger';
+
+class UserDto {
+  @IsString()
+  name: string;
+
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  password: string;
+}
+
+// Tạo DTO mới chỉ có 'name' và 'email'
+class UserNameAndEmailDto extends PickType(UserDto, ['name', 'email'] as const) {}
+```
+> `UserNameAndEmailDto` chỉ có 2 trường: `name` và `email`, không có `password`.
+#### IntersectionType
+- **Ý nghĩa**: Kết hợp 2 (hoặc nhiều) class DTO thành một class mới, chứa tất cả các trường từ các class thành phần.
+- Thường dùng khi bạn muốn ghép dữ liệu từ nhiều DTO thành một DTO tổng hợp.
+```ts
+import { IntersectionType } from '@nestjs/swagger';
+
+class AddressDto {
+  @IsString()
+  street: string;
+
+  @IsString()
+  city: string;
+}
+
+class ContactDto {
+  @IsString()
+  phone: string;
+
+  @IsEmail()
+  email: string;
+}
+
+// Tạo DTO mới chứa cả địa chỉ và thông tin liên hệ
+class UserContactInfoDto extends IntersectionType(AddressDto, ContactDto) {}
+```
+> UserContactInfoDto có tất cả các trường:
+- `street`, `city` (từ `AddressDto`)
+- `phone`, `email` (từ `ContactDto`)
+:::
