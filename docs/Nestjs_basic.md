@@ -295,3 +295,86 @@ getUsers(@Query('page') page: number) {
 - Dùng '0.0.0.0' khi cần truy cập từ bên ngoài, như test trên điện thoại, deploy trên server thật, hoặc chia sẻ với đồng nghiệp trong cùng mạng.
 - Không dùng '0.0.0.0' khi phát triển cục bộ để tăng tính bảo mật.
 
+:::tip
+### Tip khi dùng 
+#### Partialtype
+> Khi bạn muốn tạo một DTO khác để update thông tin người dùng (PATCH), bạn không cần viết lại DTO từ đầu. Thay vào đó, bạn có thể dùng `PartialType`:
+```ts
+import { PartialType } from '@nestjs/swagger';
+
+export class UpdateUserDto extends PartialType(CreateUserDto) {}
+```
+**Kết quả**: `UpdateUserDto` sẽ có tất cả các thuộc tính từ `CreateUserDto`, nhưng tất cả đều là `Optional`.
+
+#### Omittype
+- Ý nghĩa: Tạo một class mới từ class gốc, nhưng loại bỏ một hoặc nhiều trường.
+- Thường dùng khi bạn muốn tái sử dụng một DTO nhưng bỏ bớt một vài trường không cần thiết.
+```ts
+import { OmitType } from '@nestjs/swagger';
+import { IsString, IsEmail } from 'class-validator';
+
+class UserDto {
+  @IsString()
+  name: string;
+
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  password: string;
+}
+
+// Tạo DTO mới không có trường 'password'
+class UserWithoutPasswordDto extends OmitType(UserDto, ['password'] as const) {}
+```
+> `UserWithoutPasswordDto` có 2 trường: `name` và `email`, không có trường `password`.
+#### PickType
+- Ý nghĩa: Tạo một class mới từ class gốc, nhưng chỉ lấy một số trường được chọn.
+- Thường dùng khi bạn chỉ muốn expose một số trường nhất định.
+```ts
+import { PickType } from '@nestjs/swagger';
+
+class UserDto {
+  @IsString()
+  name: string;
+
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  password: string;
+}
+
+// Tạo DTO mới chỉ có 'name' và 'email'
+class UserNameAndEmailDto extends PickType(UserDto, ['name', 'email'] as const) {}
+```
+> `UserNameAndEmailDto` chỉ có 2 trường: `name` và `email`, không có `password`.
+#### IntersectionType
+- **Ý nghĩa**: Kết hợp 2 (hoặc nhiều) class DTO thành một class mới, chứa tất cả các trường từ các class thành phần.
+- Thường dùng khi bạn muốn ghép dữ liệu từ nhiều DTO thành một DTO tổng hợp.
+```ts
+import { IntersectionType } from '@nestjs/swagger';
+
+class AddressDto {
+  @IsString()
+  street: string;
+
+  @IsString()
+  city: string;
+}
+
+class ContactDto {
+  @IsString()
+  phone: string;
+
+  @IsEmail()
+  email: string;
+}
+
+// Tạo DTO mới chứa cả địa chỉ và thông tin liên hệ
+class UserContactInfoDto extends IntersectionType(AddressDto, ContactDto) {}
+```
+> UserContactInfoDto có tất cả các trường:
+- `street`, `city` (từ `AddressDto`)
+- `phone`, `email` (từ `ContactDto`)
+:::
