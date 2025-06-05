@@ -378,3 +378,200 @@ class UserContactInfoDto extends IntersectionType(AddressDto, ContactDto) {}
 - `street`, `city` (từ `AddressDto`)
 - `phone`, `email` (từ `ContactDto`)
 :::
+
+## PostgreSQL với Prisma
+
+#### Cài đặt các gói cần thiết
+```bash
+npm install prisma --save-dev
+npm install @prisma/client
+```
+
+#### Khởi tạo Prisma
+```bash
+npx prisma init
+```
+> Lệnh này sẽ tạo ra 2 file / thư mục
+- `prisma/schema.prisma`
+- `.env`
+
+#### Cấu hình kết nối PostgreSQL
+> Trong file `.env`, chỉnh sửa dòng `DATABASE_URL` như sau:
+```database
+DATABASE_URL="postgresql://username:password@localhost:5432/database_name?schema=public"
+```
+#### Định nghĩa schema Prisma
+> Mở file `prisma/schema.prisma`
+
+```jsx title="prisma"
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id    Int     @id @default(autoincrement())
+  name  String
+  email String  @unique
+}
+```
+#### Tạo database và sinh Prisma Client
+```bash
+npx prisma migrate dev --name init
+```
+> Lệnh này sẽ:
+- Tạo migration
+- Tạo bảng trong PostgreSQL
+- Sinh Prisma Client
+
+#### Tích hợp Prisma vào NestJS
+##### Tạo Prisma Module
+```bash
+nest g module prisma
+nest g service prisma
+```
+##### Cập nhật `prisma.service.ts`
+```jsx
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
+
+@Injectable()
+export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+  onModuleInit() {
+    return this.$connect();
+  }
+
+  onModuleDestroy() {
+    return this.$disconnect();
+  }
+}
+```
+##### Cập nhật `prisma.module.ts`
+```jsx
+import { Module } from '@nestjs/common';
+import { PrismaService } from './prisma.service';
+
+@Module({
+  providers: [PrismaService],
+  exports: [PrismaService],
+})
+export class PrismaModule {}
+```
+##### Cách sử dụng Prisma trong các Service khác
+> `Tạo UserService` sử dụng `Prisma`
+```jsx
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+
+@Injectable()
+export class UserService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  findAllUsers() {
+    return this.prisma.user.findMany();
+  }
+}
+```
+## PostgreSQL với TypeORM
+#### Cài đặt các package cần thiết
+> chạy các lệnh sau để cài đặt gói
+```bash
+npm install --save @nestjs/typeorm typeorm pg
+npm install @nestjs/config
+```
+#### Tạo file `.evn`
+
+```bash
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=postgres
+DB_NAME=mydb
+```
+#### Sử dụng trong `AppModule`
+```jsx title="app.module.ts"
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot(),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: function (configService: ConfigService) {
+        return {
+          type: 'postgres',
+          host: configService.get('DB_HOST'),
+          port: parseInt(configService.get('DB_PORT')),
+          username: configService.get('DB_USERNAME'),
+          password: configService.get('DB_PASSWORD'),
+          database: configService.get('DB_NAME'),
+          entities: [__dirname + '/**/*.entity{.ts,.js}'],
+          synchronize: true,
+        };
+      },
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+#### Tạo `Entity`
+> tạo file `user.entity.ts`
+```jsx title="user.entity.ts"
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+
+@Entity()
+export class User {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column()
+  name: string;
+
+  @Column({ unique: true })
+  email: string;
+}
+```
+#### Kết nối repository hoặc dùng trong service/module
+> Trong `UserModule`:
+```jsx title="user.module.ts"
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from './user.entity';
+import { UserService } from './user.service';
+import { UserController } from './user.controller';
+
+@Module({
+  imports: [TypeOrmModule.forFeature([User])],
+  providers: [UserService],
+  controllers: [UserController],
+})
+export class UserModule {}
+```
+
+> Trong `UserService`:
+```jsx title="user.service.ts"
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from './user.entity';
+
+@Injectable()
+export class UserService {
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) {}
+
+  findAll(): Promise<User[]> {
+    return this.userRepository.find();
+  }
+}
+```
