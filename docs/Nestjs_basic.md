@@ -617,3 +617,193 @@ Sau đó chương trình sẽ hỏi một loạt câu hỏi như:
 - Có thể cần chỉnh sửa lại các file đầu ra cho phù hợp với logic thực tế.
 - Cần cài đúng ORM đã chọn trước đó (TypeORM, Prisma...).
 :::
+
+## Middleware
+
+### Middleware là gì trong NestJS?
+- Kiểm tra quyền truy cập (Auth)
+- Ghi log
+- Phân tích dữ liệu request (parse)
+- Cập nhật request object (req)
+> cấu trúc **middleware**:
+```ts
+function logger(req: Request, res: Response, next: Function) {
+  console.log(`Request...`);
+  next();
+}
+```
+### Cách tạo Middleware trong NestJS
+#### Middleware dạng function-based
+```ts
+import { Request, Response, NextFunction } from 'express';
+
+export function logger(req: Request, res: Response, next: NextFunction) {
+  console.log(`[${req.method}] ${req.url}`);
+  next();
+}
+```
+#### Middleware dạng class-based
+```ts
+import { Injectable, NestMiddleware } from '@nestjs/common';
+import { Request, Response, NextFunction } from 'express';
+
+@Injectable()
+export class LoggerMiddleware implements NestMiddleware {
+  use(req: Request, res: Response, next: NextFunction) {
+    console.log(`[${req.method}] ${req.url}`);
+    next();
+  }
+}
+```
+### Cách áp dụng middleware
+sử dụng middleware trong `configure()` method của `Module` thông qua `MiddlewareConsumer`
+
+```ts
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { LoggerMiddleware } from './logger.middleware';
+import { UserController } from './user.controller';
+
+@Module({
+  controllers: [UserController],
+})
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggerMiddleware)
+      .forRoutes('user'); // hoặc .forRoutes(UserController)
+  }
+}
+```
+
+### Một số option khác
+`.exclude()` dùng để loại trừ route
+`.forRoutes()` dùng để chỉ định cụ thể
+```ts
+consumer
+  .apply(LoggerMiddleware)
+  .exclude({ path: 'user/login', method: RequestMethod.POST })
+  .forRoutes({ path: 'user', method: RequestMethod.GET });
+```
+:::warning Lưu ý
+- Middleware **chạy trước** guard, interceptor, và pipe.
+- Middleware không thể inject các provider khác bằng constructor. Nếu cần, hãy dùng @Injectable() kết hợp ModuleRef hoặc viết logic trong Interceptor/Guard.
+- Middleware không dùng được với GraphQL, vì GraphQL không có khái niệm routes.
+:::
+
+## Interceptors
+### Interceptors là gì?
+> Interceptors trong NestJS tương tự như middleware nhưng có quyền kiểm soát cao hơn. Chúng hoạt động trước và sau khi một phương thức xử lý (handler) của controller được gọi.
+
+**Chức năng chính:**
+- Gọi logic **trước** và **sau** khi một method handler được thực thi.
+- Chuyển đổi kết quả trả về từ handler.
+- Biến đổi dữ liệu request.
+- Mã hóa/giải mã, logging, caching, v.v.
+
+### Cách tạo một Interceptor
+```ts
+import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+
+@Injectable()
+export class TransformInterceptor implements NestInterceptor {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    console.log('Before handler...');
+
+    return next
+      .handle()
+      .pipe(
+        map(data => ({ data }))  // Biến đổi kết quả trả về
+      );
+  }
+}
+```
+### Áp dụng Interceptor
+#### Cục bộ (Local):
+```ts
+@UseInterceptors(TransformInterceptor)
+@Get()
+findAll() {
+  return this.usersService.findAll();
+}
+```
+#### Toàn cục bộ (Global):
+```ts title="main.ts"
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.useGlobalInterceptors(new TransformInterceptor());
+  await app.listen(3000);
+}
+```
+### Các Use-case phổ biến
+- Logging (ghi log)
+- Transformation (biến đổi dữ liệu trả về)
+- Timeout
+- Caching
+- Error formatting
+
+## Pipes
+### Pipes trong NestJS là gì?
+
+**Pipes là lớp được sử dụng để:**
+- Biến đổi dữ liệu đầu vào (input data transformation)
+- Xác thực dữ liệu đầu vào (input data validation)
+- Chúng được gọi trước khi request handler thực thi.
+
+#### ví dụ đơn giản: ParseIntPipe
+> `ParseIntPipe` sẽ tự động chuyển đổi `id` (string) thành `number`
+```ts
+@Get(':id')
+getById(@Param('id', ParseIntPipe) id: number) {
+  return this.service.findById(id);
+}
+```
+> Trường hợp đúng:
+- Gửi `GET /users/123` → id sẽ là 123 (kiểu number)
+
+>Trường hợp sai:
+- Gửi G`ET /users/abc` → lỗi: BadRequestException
+
+```json
+{
+  "statusCode": 400,
+  "message": "Validation failed (numeric string is expected)",
+  "error": "Bad Request"
+}
+```
+
+### Cách tạo Pipe
+```ts
+import { PipeTransform, Injectable, BadRequestException } from '@nestjs/common';
+
+@Injectable()
+export class ParseUpperCasePipe implements PipeTransform {
+  transform(value: any) {
+    if (typeof value !== 'string') {
+      throw new BadRequestException('Validation failed');
+    }
+    return value.toUpperCase();
+  }
+}
+```
+#### Áp dụng Pipe:
+```ts
+@Get(':name')
+getByName(@Param('name', ParseUpperCasePipe) name: string) {
+  return this.service.findByName(name);
+}
+```
+**Pipes có thể được áp dụng ở:**
+- Parameter level
+- Method level
+- Controller level
+- Global level (toàn bộ app)
+
+### Build-in Pipes phổ biến:
+- `ValidationPipe`: dùng với class-validator
+- `ParseIntPipe`
+- `ParseBoolPipe`
+- `ParseUUIDPipe`
+- `DefaultValuePipe`
+- `ParseArrayPipe`
