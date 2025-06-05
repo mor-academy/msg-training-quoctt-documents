@@ -575,3 +575,45 @@ export class UserService {
   }
 }
 ```
+## CRUD Generator
+#### Mục đích:
+> Giúp tự động tạo nhanh các tệp cần thiết cho một module có đầy đủ chức năng CRUD:
+- Controller
+- Service
+- DTOs (`CreateDto`, `UpdateDto`)
+- Module
+- Entity hoặc Prisma Model (tùy hệ ORM) 
+
+#### Cài đặt:
+```bash
+ npm install -g @nestjsx/crud-generator
+```
+
+#### Cách sử dụng:
+> Lệnh cơ bản để tạo CRUD cho một entity:
+```bash
+crud-gen
+```
+Sau đó chương trình sẽ hỏi một loạt câu hỏi như:
+- Tên entity
+- ORM sử dụng (TypeORM, Sequelize, Mongoose, Prisma...)
+- Các field và kiểu dữ liệu
+- Có muốn thêm quan hệ không (relation)
+- Có muốn thêm validation không (class-validator)
+
+#### Output:
+> Sau khi chạy, công cụ sẽ tạo ra:
+- `entity.model.ts` hoặc Prisma schema
+- `create-xxx.dto.ts`, `update-xxx.dto.ts`
+- `xxx.service.ts`, `xxx.controller.ts`, `xxx.module.ts`
+
+#### Lợi ích:
+- Tiết kiệm thời gian viết mã CRUD lặp lại.
+- Chuẩn hóa cấu trúc mã theo best practices.
+- Tích hợp tốt với các thư viện như `@nestjsx/crud`, `class-validator`.
+
+:::warning Lưu Ý
+- Đây là công cụ CLI nên không tích hợp sẵn trong NestJS core.
+- Có thể cần chỉnh sửa lại các file đầu ra cho phù hợp với logic thực tế.
+- Cần cài đúng ORM đã chọn trước đó (TypeORM, Prisma...).
+:::
